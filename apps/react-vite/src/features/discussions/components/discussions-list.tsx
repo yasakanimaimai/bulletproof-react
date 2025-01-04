@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router-dom';
 
 import { Link } from '@/components/ui/link';
 import { Spinner } from '@/components/ui/spinner';

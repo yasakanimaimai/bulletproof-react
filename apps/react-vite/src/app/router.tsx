@@ -1,7 +1,11 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { createBrowserRouter } from 'react-router';
-import { RouterProvider } from 'react-router/dom';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+  Route,
+} from 'react-router-dom';
 
 import {
   default as AppRoot,
@@ -11,6 +15,7 @@ import {
 import { paths } from '@/config/paths';
 import { ProtectedRoute } from '@/lib/auth';
 
+// ★ convert 関数はそのまま利用
 const convert = (queryClient: QueryClient) => (m: any) => {
   const { clientLoader, clientAction, default: Component, ...rest } = m;
   return {
@@ -21,67 +26,78 @@ const convert = (queryClient: QueryClient) => (m: any) => {
   };
 };
 
-export const createAppRouter = (queryClient: QueryClient) =>
-  createBrowserRouter([
-    {
-      path: paths.home.path,
-      lazy: () => import('./routes/landing').then(convert(queryClient)),
-    },
-    {
-      path: paths.auth.register.path,
-      lazy: () => import('./routes/auth/register').then(convert(queryClient)),
-    },
-    {
-      path: paths.auth.login.path,
-      lazy: () => import('./routes/auth/login').then(convert(queryClient)),
-    },
-    {
-      path: paths.app.root.path,
-      element: (
-        <ProtectedRoute>
-          <AppRoot />
-        </ProtectedRoute>
-      ),
-      ErrorBoundary: AppRootErrorBoundary,
-      children: [
-        {
-          path: paths.app.discussions.path,
-          lazy: () =>
-            import('./routes/app/discussions/discussions').then(
-              convert(queryClient),
-            ),
-        },
-        {
-          path: paths.app.discussion.path,
-          lazy: () =>
-            import('./routes/app/discussions/discussion').then(
-              convert(queryClient),
-            ),
-        },
-        {
-          path: paths.app.users.path,
-          lazy: () => import('./routes/app/users').then(convert(queryClient)),
-        },
-        {
-          path: paths.app.profile.path,
-          lazy: () => import('./routes/app/profile').then(convert(queryClient)),
-        },
-        {
-          path: paths.app.dashboard.path,
-          lazy: () =>
-            import('./routes/app/dashboard').then(convert(queryClient)),
-        },
-      ],
-    },
-    {
-      path: '*',
-      lazy: () => import('./routes/not-found').then(convert(queryClient)),
-    },
-  ]);
+// ★ lazyImport ヘルパー: ルート側で簡単に書けるようにする
+function lazyImport(queryClient: QueryClient, path: string) {
+  return () => import(path).then(convert(queryClient));
+}
 
+// React Router のルートを生成
+export const createAppRouter = (queryClient: QueryClient) => {
+  // createRoutesFromElements で <Route> ツリーを定義
+  const routes = createRoutesFromElements(
+    <>
+      {/* ホーム */}
+      <Route
+        path={paths.home.path}
+        lazy={lazyImport(queryClient, './routes/landing')}
+      />
+
+      {/* 認証系 */}
+      <Route
+        path={paths.auth.register.path}
+        lazy={lazyImport(queryClient, './routes/auth/register')}
+      />
+      <Route
+        path={paths.auth.login.path}
+        lazy={lazyImport(queryClient, './routes/auth/login')}
+      />
+
+      {/* アプリ内 (Protected) */}
+      <Route
+        path={paths.app.root.path}
+        element={
+          <ProtectedRoute>
+            <AppRoot />
+          </ProtectedRoute>
+        }
+        errorElement={<AppRootErrorBoundary />}
+      >
+        <Route
+          path={paths.app.discussions.path}
+          lazy={lazyImport(queryClient, './routes/app/discussions/discussions')}
+        />
+        <Route
+          path={paths.app.discussion.path}
+          lazy={lazyImport(queryClient, './routes/app/discussions/discussion')}
+        />
+        <Route
+          path={paths.app.users.path}
+          lazy={lazyImport(queryClient, './routes/app/users')}
+        />
+        <Route
+          path={paths.app.profile.path}
+          lazy={lazyImport(queryClient, './routes/app/profile')}
+        />
+        <Route
+          path={paths.app.dashboard.path}
+          lazy={lazyImport(queryClient, './routes/app/dashboard')}
+        />
+      </Route>
+
+      {/* Not Found */}
+      <Route path="*" lazy={lazyImport(queryClient, './routes/not-found')} />
+    </>,
+  );
+
+  // 生成した配列を createBrowserRouter に渡す
+  return createBrowserRouter(routes);
+};
+
+// 実際に <RouterProvider> でアプリにルーターを組み込むコンポーネント
 export const AppRouter = () => {
   const queryClient = useQueryClient();
 
+  // queryClient が変わるまでルーターを再生成しないように useMemo
   const router = useMemo(() => createAppRouter(queryClient), [queryClient]);
 
   return <RouterProvider router={router} />;

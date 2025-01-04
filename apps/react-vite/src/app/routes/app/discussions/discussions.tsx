@@ -1,5 +1,5 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
-import { LoaderFunctionArgs } from 'react-router';
+import { LoaderFunctionArgs } from 'react-router-dom';
 
 import { ContentLayout } from '@/components/layouts';
 import { getInfiniteCommentsQueryOptions } from '@/features/comments/api/get-comments';

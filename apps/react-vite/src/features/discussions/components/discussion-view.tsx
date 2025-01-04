@@ -1,9 +1,9 @@
+import { useDiscussion } from '../api/get-discussion';
+import { UpdateDiscussion } from '../components/update-discussion';
+
 import { MDPreview } from '@/components/ui/md-preview';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDate } from '@/utils/format';
-
-import { useDiscussion } from '../api/get-discussion';
-import { UpdateDiscussion } from '../components/update-discussion';
 
 export const DiscussionView = ({ discussionId }: { discussionId: string }) => {
   const discussionQuery = useDiscussion({

@@ -99,6 +99,7 @@ module.exports = {
         'import/no-cycle': 'error',
         'linebreak-style': ['error', 'unix'],
         'react/prop-types': 'off',
+        'import/no-unresolved': 'off',
         'import/order': [
           'error',
           {

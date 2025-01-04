@@ -11,6 +11,7 @@
     "test-e2e": "pm2 start \"yarn run-mock-server\" --name server && yarn playwright test",
     "prepare": "husky",
     "lint": "eslint src --ignore-path .gitignore",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "check-types": "tsc --project tsconfig.json --pretty --noEmit",
     "generate": "plop",
     "storybook": "storybook dev -p 6006",
